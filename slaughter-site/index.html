@@ -240,6 +240,29 @@ render();
                    : Math.random() * Math.max(0, W - w);
     return [x, Math.random() * Math.max(0, H - w * .8)];
   };
+  // drift toward the cursor: each gif leans after the mouse at its own speed
+  let mx = null, my = null;
+  if (matchMedia("(pointer: fine)").matches && !calm) {
+    addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
+    document.addEventListener("mouseleave", () => { mx = my = null; });
+    const tick = () => {
+      for (const img of layer.children) {
+        const k = img._k || (img._k = .03 + Math.random() * .05);
+        let tx = 0, ty = 0;
+        if (mx !== null) {
+          const cx = img.offsetLeft + img.offsetWidth / 2, cy = img.offsetTop + img.offsetHeight / 2;
+          const dx = mx - cx, dy = my - cy, d = Math.hypot(dx, dy) || 1;
+          const pull = Math.min(140, d * .35);
+          tx = dx / d * pull; ty = dy / d * pull;
+        }
+        img._x = (img._x || 0) + (tx - (img._x || 0)) * k;
+        img._y = (img._y || 0) + (ty - (img._y || 0)) * k;
+        img.style.transform = `translate(${img._x.toFixed(1)}px, ${img._y.toFixed(1)}px)`;
+      }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
   const slots = innerWidth > 900 ? 6 : 3;
   for (let i = 0; i < slots; i++) {
     const img = document.createElement("img"); img.alt = ""; img.decoding = "async";
