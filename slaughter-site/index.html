@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLAUGHTER Links</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one centered column over full-screen rain; menus swap in place, back button walks up */
+:root {
+  --bg: #07080b;
+  --fg: #d9dce3;
+  --dim: #6b7080;
+  --line: #22252e;
+  --hover: #12141a;
+  --rain: 160, 170, 190;
+  --display: "Pirata One", "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--mono); font-size: 14px;
+  margin: 0; padding-inline: 16px; overflow-x: hidden;
+}
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+main {
+  position: relative; z-index: 1;
+  min-height: 100%; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 28px; padding-block: 48px;
+  max-width: 360px; margin-inline: auto;
+}
+h1 {
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(48px, 14vw, 72px); line-height: 1; margin: 0;
+  letter-spacing: 0.02em; text-align: center;
+}
+.crumb {
+  font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--dim); min-height: 1.2em; text-align: center; margin-top: -16px;
+}
+nav { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+nav a, nav button {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; box-sizing: border-box; padding: 14px 16px;
+  background: transparent; color: var(--fg);
+  border: 1px solid var(--line); border-radius: 2px;
+  font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; text-transform: uppercase;
+  text-decoration: none; cursor: pointer; text-align: left;
+  transition: background .15s, border-color .15s;
+}
+nav a:hover, nav button:hover, nav a:focus-visible, nav button:focus-visible {
+  background: var(--hover); border-color: var(--dim); outline: none;
+}
+nav .sub { color: var(--dim); font-weight: 400; letter-spacing: 0.08em; font-size: 11px; }
+nav .back { border-color: transparent; color: var(--dim); justify-content: center; }
+nav .back:hover { border-color: transparent; background: transparent; color: var(--fg); }
+.dead { border: 1px dashed var(--line); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.dead .row { display: flex; justify-content: space-between; font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+.dead .row .sub { color: #a8505a; }
+.dead p { margin: 0; font-size: 11px; line-height: 1.5; color: var(--dim); letter-spacing: 0.04em; }
+.red { color: #c0606a !important; }
+.detail { display: flex; flex-direction: column; gap: 14px; }
+.detail img { display: block; max-width: 100%; border: 1px solid var(--line); }
+.detail .meta { display: flex; gap: 12px; align-items: center; }
+.detail .icon { width: 64px; height: 64px; flex: none; }
+.detail .meta div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.detail b { font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; }
+.detail .tag { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #c0606a; }
+.detail p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--fg); }
+.detail figure { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.detail figcaption { font-size: 11px; line-height: 1.5; color: var(--dim); }
+footer { font-size: 11px; color: var(--dim); text-align: center; letter-spacing: 0.08em; }
+footer span { color: var(--fg); user-select: all; }
+.fade { animation: fade .25s ease; }
+@keyframes fade { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fade { animation: none; } }
+</style>
+</head>
+<body>
+
+<canvas id="rain" aria-hidden="true"></canvas>
+<main>
+  <h1>SLAUGHTER</h1>
+  <div class="crumb" id="crumb"></div>
+  <nav id="menu"></nav>
+  <footer>business — <span id="email"></span></footer>
+</main>
+
+<script>
+// ===== EDIT YOUR LINKS HERE =====
+const EMAIL = "celestialstudios223@gmail.com";
+const MENU = {
+  title: "",
+  items: [
+    { label: "Free Discord", href: "https://discord.gg/wwyZ6R3Fw" },
+    { label: "Portfolio", items: [
+      { label: "DNAGG", sub: "banned", detail: {
+        thumb: "dnagg-thumb.jpg",
+        icon: "dnagg-icon.jpg",
+        note: "My first real project. Taken down over monetization issues.",
+        photo: "dnagg-owner.jpg",
+        caption: "Me with Brad3n, owner of the original DAAG. It was in Legacy too.",
+      }},
+      { label: "Headtap",        href: "https://www.roblox.com/games/124673719670870" },
+      { label: "Zombie Slayer",  href: "https://www.roblox.com/games/131843216364851/Zombie-Slayer" },
+    ]},
+    { label: "Education", items: [
+      { label: "YouTube Long Form", sub: "free", href: "https://www.youtube.com/@SlaughterRBLX/videos" },
+    ]},
+    { label: "Social Medias", items: [
+      { label: "YouTube", items: [
+        { label: "Long Form", sub: "free education", href: "https://www.youtube.com/@SlaughterRBLX/videos" },
+        { label: "Short Form", href: "https://www.youtube.com/@SlaughterRBLX/shorts" },
+      ]},
+      { label: "TikTok",    href: "https://www.tiktok.com/@slaughterblox" },
+      { label: "Instagram", href: "https://www.instagram.com/slaughterrblxreal/" },
+    ]},
+  ],
+};
+// ================================
+
+const stack = [MENU];
+const nav = document.getElementById("menu");
+const crumb = document.getElementById("crumb");
+document.getElementById("email").textContent = EMAIL;
+
+function render() {
+  const cur = stack[stack.length - 1];
+  nav.innerHTML = "";
+  crumb.textContent = stack.slice(1).map(m => m.label).join(" / ");
+  if (cur.detail) {
+    const d = cur.detail, box = document.createElement("div");
+    box.className = "detail";
+    box.innerHTML = `<img class="thumb" alt="DNAGG thumbnail"><div class="meta"><img class="icon" alt="DNAGG icon"><div><b></b><span class="tag">banned</span><p></p></div></div><figure><img alt="Me with the owner of the original DAAG"><figcaption></figcaption></figure>`;
+    box.querySelector(".thumb").src = d.thumb;
+    box.querySelector(".icon").src = d.icon;
+    box.querySelector("b").textContent = cur.label;
+    box.querySelector(".meta p").textContent = d.note;
+    box.querySelector("figure img").src = d.photo;
+    box.querySelector("figcaption").textContent = d.caption;
+    nav.appendChild(box);
+  }
+  (cur.items || []).forEach(it => {
+    if (it.note) {
+      const d = document.createElement("div"); d.className = "dead";
+      d.innerHTML = `<div class="row"><span></span><span class="sub"></span></div><p></p>`;
+      d.querySelector("span").textContent = it.label;
+      d.querySelector(".sub").textContent = it.sub || "";
+      d.querySelector("p").textContent = it.note;
+      nav.appendChild(d); return;
+    }
+    const el = document.createElement(it.items || it.detail ? "button" : "a");
+    if (it.items || it.detail) {
+      el.type = "button";
+      el.onclick = () => { stack.push(it); render(); };
+    } else {
+      el.href = it.href; el.target = "_blank"; el.rel = "noopener";
+    }
+    el.innerHTML = `<span></span><span class="sub"></span>`;
+    el.children[0].textContent = it.label;
+    el.children[1].textContent = it.sub || (it.items ? "+" : "↗");
+    if (it.detail) el.children[1].classList.add("red");
+    nav.appendChild(el);
+  });
+  if (stack.length > 1) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "back"; b.textContent = "← back";
+    b.onclick = () => { stack.pop(); render(); };
+    nav.appendChild(b);
+  }
+  nav.classList.remove("fade"); void nav.offsetWidth; nav.classList.add("fade");
+}
+render();
+
+// rain
+const cv = document.getElementById("rain"), ctx = cv.getContext("2d");
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rgb = getComputedStyle(document.documentElement).getPropertyValue("--rain").trim();
+let drops = [], W, H;
+function size() {
+  const d = devicePixelRatio || 1;
+  W = innerWidth; H = innerHeight;
+  cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  drops = Array.from({ length: Math.round(W * H / 9000) }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    l: 8 + Math.random() * 16, v: 6 + Math.random() * 8, a: 0.08 + Math.random() * 0.22,
+  }));
+}
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+  for (const p of drops) {
+    ctx.strokeStyle = `rgba(${rgb},${p.a})`;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.l * 0.12, p.y + p.l); ctx.stroke();
+    if (!still) { p.y += p.v; p.x -= p.v * 0.12; if (p.y > H) { p.y = -p.l; p.x = Math.random() * (W + 40); } }
+  }
+  if (!still) requestAnimationFrame(frame);
+}
+addEventListener("resize", () => { size(); if (still) frame(); });
+size(); frame();
+</script>
+</body>
+</html>
