@@ -246,7 +246,14 @@ render();
     layer.appendChild(img);
     const cycle = () => {
       const w = Math.round((innerWidth > 900 ? 130 : 90) + Math.random() * 90);
-      const [x, y] = spot(w);
+      let x, y;
+      for (let t = 0; t < 12; t++) {
+        [x, y] = spot(w);
+        const hit = [...layer.children].some(o => o !== img && o.classList.contains("on") &&
+          x < o.offsetLeft + o.offsetWidth + 16 && x + w + 16 > o.offsetLeft &&
+          y < o.offsetTop + o.offsetHeight + 16 && y + w * .8 + 16 > o.offsetTop);
+        if (!hit) break;
+      }
       img.classList.remove("on");
       setTimeout(() => {
         img.onload = () => img.classList.add("on");
