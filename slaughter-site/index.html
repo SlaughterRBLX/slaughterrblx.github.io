@@ -57,6 +57,23 @@ nav a:hover, nav button:hover, nav a:focus-visible, nav button:focus-visible {
 }
 nav .sub { color: var(--dim); font-weight: 400; letter-spacing: 0.08em; font-size: 11px; }
 nav .back { border-color: transparent; color: var(--dim); justify-content: center; }
+#gifs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+#gifs img {
+  position: absolute; border-radius: 4px; opacity: 0;
+  transition: opacity 1.2s ease; filter: saturate(.85);
+}
+#gifs img.on { opacity: var(--gif-op, .5); }
+@media (max-width: 700px) { #gifs { --gif-op: .22; } }
+#zback {
+  position: fixed; left: 0; bottom: 0;
+  width: 33vw; max-width: 520px; z-index: 2;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  transition: transform .2s ease;
+}
+#zback img { display: block; width: 100%; height: auto; }
+#zback:hover, #zback:focus-visible { transform: translateX(-8px); outline: none; }
+@media (max-width: 700px) { #zback { display: none; } }
+@media (min-width: 701px) { nav .back { display: none; } }
 nav .back:hover { border-color: transparent; background: transparent; color: var(--fg); }
 .dead { border: 1px dashed var(--line); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
 .dead .row { display: flex; justify-content: space-between; font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
@@ -83,6 +100,8 @@ footer span { color: var(--fg); user-select: all; }
 <body>
 
 <canvas id="rain" aria-hidden="true"></canvas>
+<div id="gifs" aria-hidden="true"></div>
+<button id="zback" type="button" aria-label="Back" title="Back" hidden><img src="arrow-guy.png" alt=""></button>
 <main>
   <h1>SLAUGHTER</h1>
   <div class="crumb" id="crumb"></div>
@@ -91,6 +110,35 @@ footer span { color: var(--fg); user-select: all; }
 </main>
 
 <script>
+// ===== GIFS (GIPHY ids — the part before /giphy.gif in each link) =====
+const GIFS = [
+  "LwTAKTOg8kMXm",
+  "yyKCipH3YmkKPkuFDg",
+  "teC5BZ98IFdaE",
+  "8L1pCJGYVnbmfs97Ta",
+  "pz2MwgsXVocJHQ3k3p",
+  "Lmrmsef9aIjIuXwA95",
+  "qDj2cg2ZR27nqJm65k",
+  "oQgyhvK8hmUogxXI8Z",
+  "eRvTDaqVcWXl1WAwGF",
+  "zHuDaJUqrEVvnH3wUb",
+  "wvgeDjaSFMo2xTdejl",
+  "2jvYTTzGWVtP8orPWd",
+  "ieVedQqLpuzfTgMWi1",
+  "idktEEeebpok8jtxof",
+  "xsNj7zCD7kwBdtPpK0",
+  "bUIGbo1n3A8YdL7mg5",
+  "KwkE2AZihClmSXatzt",
+  "3o72EVSffJnSga9mKI",
+  "todc1pmjkSgK72P8Ar",
+  "JKWHs0sWp547nOB2Ea",
+  "SLIW1gVWoJTpvR8Cx4",
+  "4YjATtUu9BYJl8ZJGn",
+  "z7wAuoFCRcz5MVILcL",
+  "ZyNv8IreclMZ1q445D",
+  "e1p1VBtku6pdaTgBVd",
+  "Sx5blTgMm0EdN4qWkA"
+];
 // ===== EDIT YOUR LINKS HERE =====
 const EMAIL = "celestialstudios223@gmail.com";
 const MENU = {
@@ -166,6 +214,7 @@ function render() {
     if (it.detail) el.children[1].classList.add("red");
     nav.appendChild(el);
   });
+  zback.hidden = stack.length < 2;
   if (stack.length > 1) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "back"; b.textContent = "← back";
@@ -174,7 +223,41 @@ function render() {
   }
   nav.classList.remove("fade"); void nav.offsetWidth; nav.classList.add("fade");
 }
+const zback = document.getElementById("zback");
+zback.onclick = () => { stack.pop(); render(); };
 render();
+
+// floating gifs: a few at a time around the edges, cycling through the whole list
+(() => {
+  const layer = document.getElementById("gifs");
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let queue = [];
+  const next = () => { if (!queue.length) queue = GIFS.slice().sort(() => Math.random() - .5); return queue.pop(); };
+  const spot = (w) => {
+    const W = innerWidth, H = innerHeight, wide = W > 900;
+    const side = Math.random() < .5;
+    const x = wide ? (side ? Math.random() * Math.max(0, W * .3 - w) : W * .7 + Math.random() * Math.max(0, W * .3 - w))
+                   : Math.random() * Math.max(0, W - w);
+    return [x, Math.random() * Math.max(0, H - w * .8)];
+  };
+  const slots = innerWidth > 900 ? 6 : 3;
+  for (let i = 0; i < slots; i++) {
+    const img = document.createElement("img"); img.alt = ""; img.decoding = "async";
+    layer.appendChild(img);
+    const cycle = () => {
+      const w = Math.round((innerWidth > 900 ? 130 : 90) + Math.random() * 90);
+      const [x, y] = spot(w);
+      img.classList.remove("on");
+      setTimeout(() => {
+        img.onload = () => img.classList.add("on");
+        img.style.cssText = `left:${x}px;top:${y}px;width:${w}px`;
+        img.src = `https://media.giphy.com/media/${next()}/200w.webp`;
+        if (!calm) setTimeout(cycle, 7000 + Math.random() * 6000);
+      }, 1200);
+    };
+    setTimeout(cycle, i * 900);
+  }
+})();
 
 // rain
 const cv = document.getElementById("rain"), ctx = cv.getContext("2d");
