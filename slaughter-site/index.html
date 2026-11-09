@@ -14,6 +14,8 @@
   --dim: #6b7080;
   --line: #22252e;
   --hover: #12141a;
+  --panel: rgba(7, 8, 11, .78);
+  --live: #5fd38a;
   --rain: 160, 170, 190;
   --display: "Pirata One", "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -37,6 +39,7 @@ h1 {
   font-family: var(--display); font-weight: 400;
   font-size: clamp(48px, 14vw, 72px); line-height: 1; margin: 0;
   letter-spacing: 0.02em; text-align: center;
+  text-shadow: 0 2px 18px #000;
 }
 .crumb {
   font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
@@ -44,9 +47,9 @@ h1 {
 }
 nav { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 nav a, nav button {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
   width: 100%; box-sizing: border-box; padding: 14px 16px;
-  background: transparent; color: var(--fg);
+  background: var(--panel); color: var(--fg);
   border: 1px solid var(--line); border-radius: 2px;
   font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; text-transform: uppercase;
   text-decoration: none; cursor: pointer; text-align: left;
@@ -55,14 +58,32 @@ nav a, nav button {
 nav a:hover, nav button:hover, nav a:focus-visible, nav button:focus-visible {
   background: var(--hover); border-color: var(--dim); outline: none;
 }
-nav .sub { color: var(--dim); font-weight: 400; letter-spacing: 0.08em; font-size: 11px; }
-nav .back { border-color: transparent; color: var(--dim); justify-content: center; }
+nav .sub { color: var(--dim); font-weight: 400; letter-spacing: 0.08em; font-size: 11px; white-space: nowrap; }
+nav .back { border-color: transparent; background: transparent; color: var(--dim); justify-content: center; }
+nav .back:hover { border-color: transparent; background: transparent; color: var(--fg); }
+
+/* live dot */
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--live); margin-right: 7px; vertical-align: 1px; box-shadow: 0 0 0 0 rgba(95, 211, 138, .6); animation: ping 2s infinite; }
+.dot.off { background: var(--dim); animation: none; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(95, 211, 138, .55); } 70% { box-shadow: 0 0 0 7px rgba(95, 211, 138, 0); } 100% { box-shadow: 0 0 0 0 rgba(95, 211, 138, 0); } }
+.live-sub { color: var(--live) !important; }
+
+/* game cards */
+nav .game { padding: 12px; gap: 14px; justify-content: flex-start; }
+.game .gicon { width: 64px; height: 64px; flex: none; border-radius: 10px; background: var(--hover); object-fit: cover; }
+.game .ginfo { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.game b { font: 500 13px/1.2 var(--mono); letter-spacing: 0.14em; }
+.game .ccu { font-size: 12px; letter-spacing: 0.06em; text-transform: none; color: var(--fg); }
+.game .ccu .n { font-weight: 500; font-variant-numeric: tabular-nums; transition: color .6s; }
+.game .ccu .n.bump { color: var(--live); transition: none; }
+.game .visits { font-size: 10px; letter-spacing: 0.12em; color: var(--dim); }
+.game .arrow { color: var(--dim); font-size: 11px; align-self: flex-start; }
+.game.banned .tag { font-size: 10px; letter-spacing: 0.2em; color: #c0606a; }
+.updated { font-size: 10px; letter-spacing: 0.12em; color: var(--dim); text-align: center; margin-top: 2px; }
+
 #gifs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-#gifs img {
-  position: absolute; border-radius: 4px; opacity: 0;
-  transition: opacity 1.2s ease; filter: saturate(.85);
-}
-#gifs img.on { opacity: var(--gif-op, .5); }
+#gifs img { position: absolute; border-radius: 4px; opacity: 0; filter: saturate(.85); will-change: transform, opacity; }
+#gifs img.on { opacity: var(--gif-op, .45); }
 @media (max-width: 700px) { #gifs { --gif-op: .22; } }
 #zback {
   position: fixed; left: 0; bottom: 0;
@@ -74,13 +95,8 @@ nav .back { border-color: transparent; color: var(--dim); justify-content: cente
 #zback:hover, #zback:focus-visible { transform: translateX(-8px); outline: none; }
 @media (max-width: 700px) { #zback { display: none; } }
 @media (min-width: 701px) { nav .back { display: none; } }
-nav .back:hover { border-color: transparent; background: transparent; color: var(--fg); }
-.dead { border: 1px dashed var(--line); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
-.dead .row { display: flex; justify-content: space-between; font: 500 13px/1.2 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
-.dead .row .sub { color: #a8505a; }
-.dead p { margin: 0; font-size: 11px; line-height: 1.5; color: var(--dim); letter-spacing: 0.04em; }
-.red { color: #c0606a !important; }
-.detail { display: flex; flex-direction: column; gap: 14px; }
+
+.detail { display: flex; flex-direction: column; gap: 14px; background: var(--panel); }
 .detail img { display: block; max-width: 100%; border: 1px solid var(--line); }
 .detail .meta { display: flex; gap: 12px; align-items: center; }
 .detail .icon { width: 64px; height: 64px; flex: none; }
@@ -94,7 +110,7 @@ footer { font-size: 11px; color: var(--dim); text-align: center; letter-spacing:
 footer span { color: var(--fg); user-select: all; }
 .fade { animation: fade .25s ease; }
 @keyframes fade { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .fade { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .dot { animation: none; } }
 </style>
 </head>
 <body>
@@ -112,40 +128,29 @@ footer span { color: var(--fg); user-select: all; }
 <script>
 // ===== GIFS (GIPHY ids — the part before /giphy.gif in each link) =====
 const GIFS = [
-  "LwTAKTOg8kMXm",
-  "yyKCipH3YmkKPkuFDg",
-  "teC5BZ98IFdaE",
-  "8L1pCJGYVnbmfs97Ta",
-  "pz2MwgsXVocJHQ3k3p",
-  "Lmrmsef9aIjIuXwA95",
-  "qDj2cg2ZR27nqJm65k",
-  "oQgyhvK8hmUogxXI8Z",
-  "eRvTDaqVcWXl1WAwGF",
-  "zHuDaJUqrEVvnH3wUb",
-  "wvgeDjaSFMo2xTdejl",
-  "2jvYTTzGWVtP8orPWd",
-  "ieVedQqLpuzfTgMWi1",
-  "idktEEeebpok8jtxof",
-  "xsNj7zCD7kwBdtPpK0",
-  "bUIGbo1n3A8YdL7mg5",
-  "KwkE2AZihClmSXatzt",
-  "3o72EVSffJnSga9mKI",
-  "todc1pmjkSgK72P8Ar",
-  "JKWHs0sWp547nOB2Ea",
-  "SLIW1gVWoJTpvR8Cx4",
-  "4YjATtUu9BYJl8ZJGn",
-  "z7wAuoFCRcz5MVILcL",
-  "ZyNv8IreclMZ1q445D",
-  "e1p1VBtku6pdaTgBVd",
-  "Sx5blTgMm0EdN4qWkA"
+  "LwTAKTOg8kMXm", "yyKCipH3YmkKPkuFDg", "teC5BZ98IFdaE", "8L1pCJGYVnbmfs97Ta",
+  "pz2MwgsXVocJHQ3k3p", "Lmrmsef9aIjIuXwA95", "qDj2cg2ZR27nqJm65k", "oQgyhvK8hmUogxXI8Z",
+  "eRvTDaqVcWXl1WAwGF", "zHuDaJUqrEVvnH3wUb", "wvgeDjaSFMo2xTdejl", "2jvYTTzGWVtP8orPWd",
+  "ieVedQqLpuzfTgMWi1", "idktEEeebpok8jtxof", "xsNj7zCD7kwBdtPpK0", "bUIGbo1n3A8YdL7mg5",
+  "KwkE2AZihClmSXatzt", "3o72EVSffJnSga9mKI", "todc1pmjkSgK72P8Ar", "JKWHs0sWp547nOB2Ea",
+  "SLIW1gVWoJTpvR8Cx4", "4YjATtUu9BYJl8ZJGn", "z7wAuoFCRcz5MVILcL", "ZyNv8IreclMZ1q445D",
+  "e1p1VBtku6pdaTgBVd", "Sx5blTgMm0EdN4qWkA"
 ];
+
+// ===== GAMES (live CCU + icon pulled from Roblox) =====
+// universe = universe ID, place = the number in the roblox.com/games/ link
+const GAMES = [
+  { name: "Catch Big Bass", universe: 10773353519, place: 74991411879273 },
+  { name: "Headtap",        universe: 10194619622, place: 124673719670870 },
+];
+const REFRESH_SECONDS = 30;
+
 // ===== EDIT YOUR LINKS HERE =====
 const EMAIL = "celestialstudios223@gmail.com";
 const MENU = {
   title: "",
   items: [
-    { label: "Free Discord", href: "https://discord.gg/wwyZ6R3Fw" },
-    { label: "Portfolio", items: [
+    { label: "Portfolio", games: true, items: [
       { label: "DNAGG", sub: "banned", detail: {
         thumb: "dnagg-thumb.jpg",
         icon: "dnagg-icon.jpg",
@@ -153,8 +158,6 @@ const MENU = {
         photo: "dnagg-owner.jpg",
         caption: "Me with Brad3n, owner of the original DAAG. It was in Legacy too.",
       }},
-      { label: "Headtap",        href: "https://www.roblox.com/games/124673719670870" },
-      { label: "Zombie Slayer",  href: "https://www.roblox.com/games/131843216364851/Zombie-Slayer" },
     ]},
     { label: "Education", items: [
       { label: "YouTube Long Form", sub: "free", href: "https://www.youtube.com/@SlaughterRBLX/videos" },
@@ -171,15 +174,59 @@ const MENU = {
 };
 // ================================
 
+const live = {};          // universe -> { playing, visits, icon }
+let lastUpdate = null;
+const fmt = n => n.toLocaleString("en-US");
+const compact = n => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+
 const stack = [MENU];
 const nav = document.getElementById("menu");
 const crumb = document.getElementById("crumb");
+const zback = document.getElementById("zback");
 document.getElementById("email").textContent = EMAIL;
+
+function gameCard(g) {
+  const a = document.createElement("a");
+  a.className = "game"; a.href = `https://www.roblox.com/games/${g.place}`;
+  a.target = "_blank"; a.rel = "noopener"; a.dataset.u = g.universe;
+  a.innerHTML = `<img class="gicon" alt=""><div class="ginfo"><b></b><span class="ccu"><i class="dot off"></i><span class="n">—</span> playing</span><span class="visits"></span></div><span class="arrow">↗</span>`;
+  a.querySelector("b").textContent = g.name;
+  a.querySelector(".gicon").alt = g.name + " icon";
+  fillCard(a);
+  return a;
+}
+function fillCard(a) {
+  const d = live[a.dataset.u]; if (!d) return;
+  const n = a.querySelector(".n"), icon = a.querySelector(".gicon");
+  if (d.icon && icon.src !== d.icon) icon.src = d.icon;
+  if (d.playing != null) {
+    const txt = fmt(d.playing);
+    if (n.textContent !== txt) {
+      const changed = n.textContent !== "—";
+      n.textContent = txt;
+      if (changed) { n.classList.add("bump"); requestAnimationFrame(() => requestAnimationFrame(() => n.classList.remove("bump"))); }
+    }
+    a.querySelector(".dot").classList.toggle("off", d.playing === 0);
+  }
+  if (d.visits != null) a.querySelector(".visits").textContent = compact(d.visits) + " visits";
+}
+function totalLive() {
+  const vals = GAMES.map(g => live[g.universe]?.playing).filter(v => v != null);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) : null;
+}
+function refreshLiveBits() {
+  nav.querySelectorAll(".game[data-u]").forEach(fillCard);
+  const pf = nav.querySelector("[data-portfolio] .sub"), t = totalLive();
+  if (pf && t != null) { pf.innerHTML = `<i class="dot"></i>${fmt(t)} live`; pf.classList.add("live-sub"); }
+  const up = nav.querySelector(".updated");
+  if (up && lastUpdate) up.textContent = `live · updates every ${REFRESH_SECONDS}s`;
+}
 
 function render() {
   const cur = stack[stack.length - 1];
   nav.innerHTML = "";
   crumb.textContent = stack.slice(1).map(m => m.label).join(" / ");
+
   if (cur.detail) {
     const d = cur.detail, box = document.createElement("div");
     box.className = "detail";
@@ -192,17 +239,23 @@ function render() {
     box.querySelector("figcaption").textContent = d.caption;
     nav.appendChild(box);
   }
+
+  if (cur.games) GAMES.forEach(g => nav.appendChild(gameCard(g)));
+
   (cur.items || []).forEach(it => {
-    if (it.note) {
-      const d = document.createElement("div"); d.className = "dead";
-      d.innerHTML = `<div class="row"><span></span><span class="sub"></span></div><p></p>`;
-      d.querySelector("span").textContent = it.label;
-      d.querySelector(".sub").textContent = it.sub || "";
-      d.querySelector("p").textContent = it.note;
-      nav.appendChild(d); return;
+    // banned game with a detail page, shown as a card in the portfolio
+    if (cur.games && it.detail) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "game banned";
+      b.innerHTML = `<img class="gicon" alt=""><div class="ginfo"><b></b><span class="tag">BANNED</span><span class="visits">first real project</span></div><span class="arrow">+</span>`;
+      b.querySelector("b").textContent = it.label;
+      b.querySelector(".gicon").src = it.detail.icon;
+      b.querySelector(".gicon").alt = it.label + " icon";
+      b.onclick = () => { stack.push(it); render(); };
+      nav.appendChild(b); return;
     }
-    const el = document.createElement(it.items || it.detail ? "button" : "a");
-    if (it.items || it.detail) {
+    const el = document.createElement(it.items || it.detail || it.games ? "button" : "a");
+    if (it.items || it.detail || it.games) {
       el.type = "button";
       el.onclick = () => { stack.push(it); render(); };
     } else {
@@ -211,9 +264,17 @@ function render() {
     el.innerHTML = `<span></span><span class="sub"></span>`;
     el.children[0].textContent = it.label;
     el.children[1].textContent = it.sub || (it.items ? "+" : "↗");
-    if (it.detail) el.children[1].classList.add("red");
+    if (it.games) el.dataset.portfolio = "";
+    if (it.detail) el.children[1].style.color = "#c0606a";
     nav.appendChild(el);
   });
+
+  if (cur.games) {
+    const up = document.createElement("div"); up.className = "updated";
+    up.textContent = "loading live numbers…";
+    nav.appendChild(up);
+  }
+
   zback.hidden = stack.length < 2;
   if (stack.length > 1) {
     const b = document.createElement("button");
@@ -221,75 +282,80 @@ function render() {
     b.onclick = () => { stack.pop(); render(); };
     nav.appendChild(b);
   }
+  refreshLiveBits();
   nav.classList.remove("fade"); void nav.offsetWidth; nav.classList.add("fade");
 }
-const zback = document.getElementById("zback");
 zback.onclick = () => { stack.pop(); render(); };
 render();
 
-// floating gifs: a few at a time around the edges, cycling through the whole list
+// ===== live CCU (roproxy mirrors Roblox's API with browser access allowed) =====
+async function pullLive(withIcons) {
+  const ids = GAMES.map(g => g.universe).join(",");
+  try {
+    const r = await fetch(`https://games.roproxy.com/v1/games?universeIds=${ids}`, { cache: "no-store" });
+    const j = await r.json();
+    for (const g of j.data || []) Object.assign(live[g.id] ||= {}, { playing: g.playing, visits: g.visits });
+    lastUpdate = Date.now();
+  } catch (e) { /* keep last numbers */ }
+  if (withIcons) {
+    try {
+      const r = await fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${ids}&size=150x150&format=Png&isCircular=false`);
+      const j = await r.json();
+      for (const t of j.data || []) if (t.imageUrl) (live[t.targetId] ||= {}).icon = t.imageUrl;
+    } catch (e) {}
+  }
+  refreshLiveBits();
+}
+pullLive(true);
+setInterval(() => { if (!document.hidden) pullLive(false); }, REFRESH_SECONDS * 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pullLive(false); });
+
+// ===== floating gifs: random spots anywhere on screen, slow random drift =====
 (() => {
   const layer = document.getElementById("gifs");
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let queue = [];
   const next = () => { if (!queue.length) queue = GIFS.slice().sort(() => Math.random() - .5); return queue.pop(); };
-  const spot = (w) => {
-    const W = innerWidth, H = innerHeight, wide = W > 900;
-    const side = Math.random() < .5;
-    const x = wide ? (side ? Math.random() * Math.max(0, W * .3 - w) : W * .7 + Math.random() * Math.max(0, W * .3 - w))
-                   : Math.random() * Math.max(0, W - w);
-    return [x, Math.random() * Math.max(0, H - w * .8)];
-  };
-  // drift toward the cursor: each gif leans after the mouse at its own speed
-  let mx = null, my = null;
-  if (matchMedia("(pointer: fine)").matches && !calm) {
-    addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
-    document.addEventListener("mouseleave", () => { mx = my = null; });
-    const tick = () => {
-      for (const img of layer.children) {
-        const k = img._k || (img._k = .03 + Math.random() * .05);
-        let tx = 0, ty = 0;
-        if (mx !== null) {
-          const cx = img.offsetLeft + img.offsetWidth / 2, cy = img.offsetTop + img.offsetHeight / 2;
-          const dx = mx - cx, dy = my - cy, d = Math.hypot(dx, dy) || 1;
-          const pull = Math.min(140, d * .35);
-          tx = dx / d * pull; ty = dy / d * pull;
-        }
-        img._x = (img._x || 0) + (tx - (img._x || 0)) * k;
-        img._y = (img._y || 0) + (ty - (img._y || 0)) * k;
-        img.style.transform = `translate(${img._x.toFixed(1)}px, ${img._y.toFixed(1)}px)`;
-      }
-      requestAnimationFrame(tick);
-    };
-    tick();
-  }
-  const slots = innerWidth > 900 ? 6 : 3;
+  const slots = innerWidth > 900 ? 7 : 4;
   for (let i = 0; i < slots; i++) {
     const img = document.createElement("img"); img.alt = ""; img.decoding = "async";
     layer.appendChild(img);
     const cycle = () => {
-      const w = Math.round((innerWidth > 900 ? 130 : 90) + Math.random() * 90);
+      const W = innerWidth, H = innerHeight;
+      const w = Math.round((W > 900 ? 120 : 85) + Math.random() * 100), h = w * .8;
       let x, y;
-      for (let t = 0; t < 12; t++) {
-        [x, y] = spot(w);
+      for (let t = 0; t < 14; t++) {
+        x = Math.random() * Math.max(0, W - w);
+        y = Math.random() * Math.max(0, H - h);
         const hit = [...layer.children].some(o => o !== img && o.classList.contains("on") &&
-          x < o.offsetLeft + o.offsetWidth + 16 && x + w + 16 > o.offsetLeft &&
-          y < o.offsetTop + o.offsetHeight + 16 && y + w * .8 + 16 > o.offsetTop);
+          x < o.offsetLeft + o.offsetWidth + 20 && x + w + 20 > o.offsetLeft &&
+          y < o.offsetTop + o.offsetHeight + 20 && y + h + 20 > o.offsetTop);
         if (!hit) break;
       }
+      const life = 7000 + Math.random() * 6000;
+      img.style.transition = "opacity 1.2s ease";
       img.classList.remove("on");
       setTimeout(() => {
-        img.onload = () => img.classList.add("on");
-        img.style.cssText = `left:${x}px;top:${y}px;width:${w}px`;
+        img.style.transition = "none";
+        img.style.transform = "translate(0,0)";
+        img.style.left = x + "px"; img.style.top = y + "px"; img.style.width = w + "px";
+        img.onload = () => {
+          img.style.transition = `opacity 1.2s ease, transform ${life + 1200}ms linear`;
+          img.classList.add("on");
+          if (!calm) {
+            const a = Math.random() * Math.PI * 2, d = 40 + Math.random() * 70;
+            img.style.transform = `translate(${(Math.cos(a) * d).toFixed(0)}px, ${(Math.sin(a) * d).toFixed(0)}px)`;
+          }
+        };
         img.src = `https://media.giphy.com/media/${next()}/200w.webp`;
-        if (!calm) setTimeout(cycle, 7000 + Math.random() * 6000);
+        if (!calm) setTimeout(cycle, life);
       }, 1200);
     };
-    setTimeout(cycle, i * 900);
+    setTimeout(cycle, i * 700);
   }
 })();
 
-// rain
+// ===== rain =====
 const cv = document.getElementById("rain"), ctx = cv.getContext("2d");
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rgb = getComputedStyle(document.documentElement).getPropertyValue("--rain").trim();
