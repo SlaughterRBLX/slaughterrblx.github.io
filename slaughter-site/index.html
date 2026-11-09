@@ -76,6 +76,8 @@ nav .game { padding: 12px; gap: 14px; justify-content: flex-start; }
 .game .ccu { font-size: 12px; letter-spacing: 0.06em; text-transform: none; color: var(--fg); }
 .game .ccu .n { font-weight: 500; font-variant-numeric: tabular-nums; transition: color .6s; }
 .game .ccu .n.bump { color: var(--live); transition: none; }
+.game .peak { font-size: 10px; letter-spacing: 0.16em; color: #e0b85a; }
+.game .peak:empty { display: none; }
 .game .visits { font-size: 10px; letter-spacing: 0.12em; color: var(--dim); }
 .game .arrow { color: var(--dim); font-size: 11px; align-self: flex-start; }
 .game.banned .tag { font-size: 10px; letter-spacing: 0.2em; color: #c0606a; }
@@ -139,9 +141,11 @@ const GIFS = [
 
 // ===== GAMES (live CCU + icon pulled from Roblox) =====
 // universe = universe ID, place = the number in the roblox.com/games/ link
+// peak = all-time peak CCU from Creator Hub analytics (0 hides it until set).
+// If the live count ever beats it, the site shows the higher number.
 const GAMES = [
-  { name: "Catch Big Bass", universe: 10773353519, place: 74991411879273 },
-  { name: "Headtap",        universe: 10194619622, place: 124673719670870 },
+  { name: "Catch Big Bass", universe: 10773353519, place: 74991411879273, peak: 338 },
+  { name: "Headtap",        universe: 10194619622, place: 124673719670870, peak: 98 },
 ];
 const REFRESH_SECONDS = 30;
 
@@ -189,14 +193,17 @@ function gameCard(g) {
   const a = document.createElement("a");
   a.className = "game"; a.href = `https://www.roblox.com/games/${g.place}`;
   a.target = "_blank"; a.rel = "noopener"; a.dataset.u = g.universe;
-  a.innerHTML = `<img class="gicon" alt=""><div class="ginfo"><b></b><span class="ccu"><i class="dot off"></i><span class="n">—</span> playing</span><span class="visits"></span></div><span class="arrow">↗</span>`;
+  a.innerHTML = `<img class="gicon" alt=""><div class="ginfo"><b></b><span class="ccu"><i class="dot off"></i><span class="n">—</span> playing</span><span class="peak"></span><span class="visits"></span></div><span class="arrow">↗</span>`;
   a.querySelector("b").textContent = g.name;
   a.querySelector(".gicon").alt = g.name + " icon";
+  a._game = g;
   fillCard(a);
   return a;
 }
 function fillCard(a) {
-  const d = live[a.dataset.u]; if (!d) return;
+  const d = live[a.dataset.u] || {}, g = a._game;
+  const peak = Math.max(g?.peak || 0, d.peak || 0, d.playing || 0);
+  if (g && g.peak) a.querySelector(".peak").textContent = `PEAKED ${fmt(peak)} CCU`;
   const n = a.querySelector(".n"), icon = a.querySelector(".gicon");
   if (d.icon && icon.src !== d.icon) icon.src = d.icon;
   if (d.playing != null) {
@@ -288,22 +295,43 @@ function render() {
 zback.onclick = () => { stack.pop(); render(); };
 render();
 
-// ===== live CCU (roproxy mirrors Roblox's API with browser access allowed) =====
-async function pullLive(withIcons) {
-  const ids = GAMES.map(g => g.universe).join(",");
-  try {
-    const r = await fetch(`https://games.roproxy.com/v1/games?universeIds=${ids}`, { cache: "no-store" });
-    const j = await r.json();
-    for (const g of j.data || []) Object.assign(live[g.id] ||= {}, { playing: g.playing, visits: g.visits });
-    lastUpdate = Date.now();
-  } catch (e) { /* keep last numbers */ }
-  if (withIcons) {
+// ===== live CCU =====
+// Roblox blocks direct browser requests, so this goes through public mirrors.
+// Free mirrors get rate-limited, so it tries each one in turn and keeps the last good numbers.
+const MIRRORS = ["rotunnel.com", "roproxy.com"];
+let mirror = 0;
+async function viaMirror(path) {
+  for (let i = 0; i < MIRRORS.length; i++) {
+    const host = MIRRORS[(mirror + i) % MIRRORS.length];
     try {
-      const r = await fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${ids}&size=150x150&format=Png&isCircular=false`);
+      const r = await fetch(`https://${path.split("/")[0]}.${host}/${path.split("/").slice(1).join("/")}`, { cache: "no-store" });
+      if (!r.ok) continue;
       const j = await r.json();
-      for (const t of j.data || []) if (t.imageUrl) (live[t.targetId] ||= {}).icon = t.imageUrl;
+      if (j && Array.isArray(j.data) && j.data.length) { mirror = (mirror + i) % MIRRORS.length; return j.data; }
     } catch (e) {}
   }
+  return null;
+}
+try { Object.assign(live, JSON.parse(localStorage.getItem("slaughter-live") || "{}")); } catch (e) {}
+let retry;
+async function pullLive(withIcons) {
+  const ids = GAMES.map(g => g.universe).join(",");
+  clearTimeout(retry);
+  const games = await viaMirror(`games/v1/games?universeIds=${ids}`);
+  if (games) {
+    for (const g of games) {
+      const d = live[g.id] ||= {};
+      Object.assign(d, { playing: g.playing, visits: g.visits, peak: Math.max(d.peak || 0, g.playing || 0) });
+    }
+    lastUpdate = Date.now();
+  } else {
+    retry = setTimeout(() => pullLive(false), 8000);   // a mirror was busy, try again soon
+  }
+  if (withIcons) {
+    const icons = await viaMirror(`thumbnails/v1/games/icons?universeIds=${ids}&size=150x150&format=Png&isCircular=false`);
+    for (const t of icons || []) if (t.imageUrl) (live[t.targetId] ||= {}).icon = t.imageUrl;
+  }
+  try { localStorage.setItem("slaughter-live", JSON.stringify(live)); } catch (e) {}
   refreshLiveBits();
 }
 pullLive(true);
