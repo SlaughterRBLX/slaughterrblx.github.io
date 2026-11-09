@@ -1,0 +1,59 @@
+name: Track peak CCU
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: peak-ccu
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check live players and save new peaks
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          path = "slaughter-site/peaks.json"
+          peaks = json.load(open(path))
+          ids = ",".join(peaks)
+          data = None
+          for host in ("games.roblox.com", "games.roproxy.com", "games.rotunnel.com"):
+              try:
+                  req = urllib.request.Request(
+                      f"https://{host}/v1/games?universeIds={ids}",
+                      headers={"User-Agent": "Mozilla/5.0"})
+                  data = json.load(urllib.request.urlopen(req, timeout=15))["data"]
+                  if data: break
+              except Exception as e:
+                  print(host, "failed:", e)
+          if not data:
+              raise SystemExit("could not reach Roblox")
+          changed = False
+          for g in data:
+              k, now = str(g["id"]), g.get("playing") or 0
+              print(g["name"], "playing", now, "peak", peaks.get(k, 0))
+              if now > peaks.get(k, 0):
+                  peaks[k] = now
+                  changed = True
+          if changed:
+              json.dump(peaks, open(path, "w"), indent=2)
+              open(path, "a").write("\n")
+          PY
+
+      - name: Commit if a new peak was set
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "peak-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "New peak CCU"
+            git push
+          fi
